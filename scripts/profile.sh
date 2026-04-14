@@ -10,9 +10,10 @@ if [ ! -f "identity.nix" ]; then
     exit 1
 fi
 
-# Extrair username e hostname atuais (gambiarra simples com grep/sed)
+# Extrair machineId e username atuais
+CURR_ID=$(grep "machineId =" identity.nix | cut -d'"' -f2)
 CURR_USER=$(grep "username =" identity.nix | cut -d'"' -f2)
-CURR_HOST=$(grep "hostname =" identity.nix | cut -d'"' -f2)
+HOSTNAME="mac-residencia-$CURR_ID"
 
 echo -e "${BLUE}🔄 Nex: Trocando modelo de perfil...${NC}"
 echo "1) designer"
@@ -30,15 +31,19 @@ esac
 # Atualizar identity.nix
 cat <<EOF > identity.nix
 {
+  machineId = "$CURR_ID";
   username = "$CURR_USER";
-  hostname = "$CURR_HOST";
   profile = "$NEW_PROFILE";
 }
 EOF
 
+# Garantir que o git continue ignorando mudanças locais no arquivo
+git add -f identity.nix 
+git update-index --skip-worktree identity.nix
+
 echo -e "${GREEN}✅ Perfil alterado para: $NEW_PROFILE${NC}"
 echo -e "${BLUE}⚙️ Aplicando alterações...${NC}"
 
-sudo darwin-rebuild switch --impure --flake .#"$CURR_HOST"
+sudo darwin-rebuild switch --impure --flake .#"$HOSTNAME"
 
 echo -e "${GREEN}✨ Pronto! Perfil $NEW_PROFILE ativado.${NC}"

@@ -8,6 +8,7 @@ NC='\033[0m'
 echo -e "${BLUE}🚀 Nix Setup - Residencia Apple: Iniciando instalação interativa...${NC}"
 
 # 1. Identificação da Máquina (Fixo por Hardware)
+
 # Tenta ler o ID da máquina se o identity.nix já existir
 if grep -q "machineId" identity.nix 2>/dev/null; then
     MACHINE_ID=$(grep "machineId" identity.nix | cut -d'"' -f2)
@@ -49,7 +50,9 @@ cat <<EOF > identity.nix
 }
 EOF
 
-# (Removido git add -f pois usamos --impure no build)
+# OBRIGATÓRIO: Força o git a enxergar o arquivo localmente, mas sem nunca enviá-lo para o commit/push
+git add -f identity.nix 
+git update-index --skip-worktree identity.nix
 
 echo -e "${GREEN}✅ Configuração salva em identity.nix${NC}"
 

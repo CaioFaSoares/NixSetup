@@ -6,15 +6,16 @@ NC='\033[0m'
 
 echo -e "${BLUE}🛡️ Nex: Atualizando sistema...${NC}"
 
-# Extrair hostname atual
-CURR_HOST=$(grep "hostname =" identity.nix | cut -d'"' -f2)
+# Extrair machineId atual
+CURR_ID=$(grep "machineId =" identity.nix | cut -d'"' -f2)
+HOSTNAME="mac-residencia-$CURR_ID"
 
-if [ -z "$CURR_HOST" ]; then
-    echo "Erro: Não foi possível determinar o hostname em identity.nix"
+if [ -z "$CURR_ID" ]; then
+    echo "Erro: Não foi possível determinar o machineId em identity.nix"
     exit 1
 fi
 
 nix flake update
-sudo darwin-rebuild switch --impure --flake .#"$CURR_HOST"
+sudo darwin-rebuild switch --impure --flake .#"$HOSTNAME"
 
 echo -e "${GREEN}✨ Sistema atualizado com sucesso!${NC}"
