@@ -8,15 +8,16 @@ NC='\033[0m'
 echo -e "${BLUE}🚀 Nex Setup: Iniciando instalação interativa...${NC}"
 
 # 1. Perguntas de Identidade
-read -p "👤 Digite seu nome de usuário (ex: caiosoares): " USERNAME
+read -p "👤 Digite seu nome de usuário (ex: seunome): " USERNAME
 if [ -z "$USERNAME" ]; then
     USERNAME=$(whoami)
     echo "Usando padrão: $USERNAME"
 fi
 
-read -p "💻 Digite o nome desta máquina (ex: roc-mac): " HOSTNAME
+read -p "💻 Digite o nome desta máquina (ex: mac-residencia-seunome): " HOSTNAME
 if [ -z "$HOSTNAME" ]; then
-    HOSTNAME="nex-mac"
+    USERNAME=$(whoami)
+    HOSTNAME="mac-residencia-$USERNAME"
     echo "Usando padrão: $HOSTNAME"
 fi
 
