@@ -1,25 +1,19 @@
-{
-  description = "Nex residency configuration";
-
-  inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
-    darwin.url = "github:lnl7/nix-darwin";
-    darwin.inputs.nixpkgs.follows = "nixpkgs";
-  };
-
-  outputs = { self, nixpkgs, darwin, ... }@inputs:
+outputs = { self, nixpkgs, darwin, ... }@inputs:
   let
-    # Carrega a identidade se existir, senão usa defaults
     identityFile = ./identity.nix;
     identity = if builtins.pathExists identityFile
                then import identityFile
                else { 
+                 machineId = "00"; # Fallback caso falhe
                  username = "user"; 
-                 hostname = "macbook"; 
                  profile = "suite"; 
                };
+    
+    # Gera o hostname dinamicamente: "mac-residencia-01", "mac-residencia-02", etc.
+    dinamicHostname = "mac-residencia-${identity.machineId}";
   in {
-    darwinConfigurations."${identity.hostname}" = darwin.lib.darwinSystem {
+    # Usa a variável dinamicHostname para nomear a configuração
+    darwinConfigurations."${dinamicHostname}" = darwin.lib.darwinSystem {
       system = "aarch64-darwin";
       specialArgs = { inherit inputs identity; };
       modules = [
@@ -27,9 +21,11 @@
         ./modules/darwin/system.nix
         ./modules/darwin/apps.nix
         
-        # Módulo de identidade dinâmica
         ({ pkgs, identity, ... }: {
-          networking.hostName = identity.hostname;
+          # Aplica o hostname na rede do macOS
+          networking.hostName = dinamicHostname;
+          networking.computerName = dinamicHostname; # Importante para aparecer bonitinho no AirDrop/Rede
+          
           system.primaryUser = identity.username;
           
           users.users."${identity.username}" = {
@@ -37,12 +33,9 @@
             home = "/Users/${identity.username}";
           };
           
-          # Configurações de Nix comuns
           nix.settings.experimental-features = "nix-command flakes";
-          # Impede o nix-darwin de tentar gerenciar o Nix se já estiver instalado por outros meios (ajustar se necessário)
           nix.enable = false; 
         })
       ];
     };
   };
-}

@@ -7,15 +7,23 @@ NC='\033[0m'
 
 echo -e "${BLUE}🚀 Nix Setup - Residencia Apple: Iniciando instalação interativa...${NC}"
 
-# 1. Perguntas de Identidade
+# 1. Identificação da Máquina (Fixo por Hardware)
+# Tenta ler o ID da máquina se o identity.nix já existir
+if grep -q "machineId" identity.nix 2>/dev/null; then
+    MACHINE_ID=$(grep "machineId" identity.nix | cut -d'"' -f2)
+    echo "🖥️  Máquina identificada: mac-residencia-$MACHINE_ID"
+else
+    # Se não existir, pede para o administrador/aluno digitar
+    read -p "🖥️  Digite o número FÍSICO desta máquina (ex: 01, 02, 03): " MACHINE_ID
+fi
+
+HOSTNAME="mac-residencia-$MACHINE_ID"
+
+# 2. Perguntas de Identidade (Dinâmico por Aluno)
 read -p "👤 Digite seu nome de usuário (ex: seunome): " USERNAME
 if [ -z "$USERNAME" ]; then
     USERNAME=$(whoami)
-    echo "Usando padrão: $USERNAME"
 fi
-
-HOSTNAME="mac-residencia-$USERNAME"
-echo "Usando hostname padrão: $HOSTNAME"
 
 # 2. Seleção de Perfil
 echo -e "\n${BLUE}📂 Escolha o modelo de perfil:${NC}"
@@ -31,19 +39,22 @@ case $PROFILE_OPT in
     *) PROFILE="suite"; echo "Opção inválida, usando padrão: suite" ;;
 esac
 
-# 3. Geração do identity.nix
+# 3. Geração do identity.nix incluindo o machineId
 echo -e "\n${BLUE}📝 Gerando identity.nix...${NC}"
 cat <<EOF > identity.nix
 {
+  machineId = "$MACHINE_ID";
   username = "$USERNAME";
-  hostname = "$HOSTNAME";
   profile = "$PROFILE";
 }
 EOF
 
+# OBRIGATÓRIO: Força o git a rastrear o arquivo para o Nix enxergar
+git add -f identity.nix 
+
 echo -e "${GREEN}✅ Configuração salva em identity.nix${NC}"
 
-# 4. Iniciar Build
+# 4. Iniciar Build usando o Hostname dinâmico
 echo -e "\n${BLUE}🛠️ Iniciando build do Nix-Darwin...${NC}"
 if command -v darwin-rebuild &> /dev/null; then
     sudo darwin-rebuild switch --impure --flake .#"$HOSTNAME"
