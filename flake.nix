@@ -9,45 +9,47 @@
 
   outputs = { self, nixpkgs, darwin, ... }@inputs:
   let
-    identityFile = ./identity.nix;
-    identity = if builtins.pathExists identityFile
-               then import identityFile
-               else { 
-                 machineId = "00"; # Fallback caso falhe
-                 username = "user"; 
-                 profile = "suite"; 
-               };
+    # Função para gerar uma lista de IDs formatados (ex: "01", "02", ...)
+    machineIds = map (n: if n < 10 then "0${toString n}" else toString n) (nixpkgs.lib.range 1 60);
     
-    # Gera o hostname dinamicamente: "mac-residencia-01", "mac-residencia-02", etc.
-    dinamicHostname = "mac-residencia-${identity.machineId}";
-  in {
-    # Usa a variável dinamicHostname para nomear a configuração
-    darwinConfigurations."${dinamicHostname}" = darwin.lib.darwinSystem {
-      system = "aarch64-darwin";
-      specialArgs = { inherit inputs identity; };
-      modules = [
-        ./hosts/${identity.profile}/default.nix
-        ./modules/darwin/system.nix
-        ./modules/darwin/apps.nix
+    # Função base para criar uma configuração de máquina
+    mkDarwinConfig = id: 
+      let 
+        identityFile = ./. + "/identity-${id}.nix";
+        # Carrega a identidade se existir, senão usa um fallback (evita erro no flake check)
+        identity = if builtins.pathExists identityFile
+                   then import identityFile
+                   else { machineId = id; username = "user"; profile = "suite"; };
         
-        ({ pkgs, identity, ... }: {
-          # Aplica o hostname na rede do macOS
-          networking.hostName = dinamicHostname;
-          networking.computerName = dinamicHostname; # Importante para aparecer bonitinho no AirDrop/Rede
+        hostname = "mac-residencia-${id}";
+      in darwin.lib.darwinSystem {
+        system = "aarch64-darwin";
+        specialArgs = { inherit inputs identity; };
+        modules = [
+          ./hosts/${identity.profile}/default.nix
+          ./modules/darwin/system.nix
+          ./modules/darwin/apps.nix
           
-          system.primaryUser = identity.username;
-
-          system.stateVersion = 6;
-          
-          users.users."${identity.username}" = {
-            name = identity.username;
-            home = "/Users/${identity.username}";
-          };
-          
-          nix.settings.experimental-features = "nix-command flakes";
-          nix.enable = false; 
-        })
-      ];
-    };
+          ({ pkgs, identity, ... }: {
+            networking.hostName = hostname;
+            networking.computerName = hostname;
+            system.primaryUser = identity.username;
+            system.stateVersion = 6;
+            
+            users.users."${identity.username}" = {
+              name = identity.username;
+              home = "/Users/${identity.username}";
+            };
+            
+            nix.settings.experimental-features = "nix-command flakes";
+            nix.enable = false; 
+          })
+        ];
+      };
+  in {
+    # Gera as configurações dinamicamente para todos os IDs
+    darwinConfigurations = nixpkgs.lib.genAttrs 
+      (map (id: "mac-residencia-${id}") machineIds) 
+      (name: mkDarwinConfig (nixpkgs.lib.last (nixpkgs.lib.splitString "-" name)));
   };
 }

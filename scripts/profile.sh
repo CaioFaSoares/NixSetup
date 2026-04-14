@@ -5,14 +5,17 @@ BLUE='\033[0;34m'
 GREEN='\033[0;32m'
 NC='\033[0m'
 
-if [ ! -f "identity.nix" ]; then
-    echo -e "${BLUE}❌ identity.nix não encontrado. Rode o install.sh primeiro.${NC}"
+# Tenta localizar o arquivo identity-*.nix
+IDENTITY_FILE=$(ls identity-*.nix 2>/dev/null | head -n 1)
+
+if [ -z "$IDENTITY_FILE" ]; then
+    echo -e "${BLUE}❌ Arquivo de identidade não encontrado. Rode o install.sh primeiro.${NC}"
     exit 1
 fi
 
 # Extrair machineId e username atuais
-CURR_ID=$(grep "machineId =" identity.nix | cut -d'"' -f2)
-CURR_USER=$(grep "username =" identity.nix | cut -d'"' -f2)
+CURR_ID=$(grep "machineId =" "$IDENTITY_FILE" | cut -d'"' -f2)
+CURR_USER=$(grep "username =" "$IDENTITY_FILE" | cut -d'"' -f2)
 HOSTNAME="mac-residencia-$CURR_ID"
 
 echo -e "${BLUE}🔄 Nex: Trocando modelo de perfil...${NC}"
@@ -28,8 +31,8 @@ case $NEW_OPT in
     *) echo "Operação cancelada."; exit 0 ;;
 esac
 
-# Atualizar identity.nix
-cat <<EOF > identity.nix
+# Atualizar o arquivo de identidade
+cat <<EOF > "$IDENTITY_FILE"
 {
   machineId = "$CURR_ID";
   username = "$CURR_USER";
@@ -38,8 +41,8 @@ cat <<EOF > identity.nix
 EOF
 
 # Garantir que o git continue ignorando mudanças locais no arquivo
-git add -f identity.nix 
-git update-index --skip-worktree identity.nix
+git add -f "$IDENTITY_FILE" 
+git update-index --skip-worktree "$IDENTITY_FILE"
 
 echo -e "${GREEN}✅ Perfil alterado para: $NEW_PROFILE${NC}"
 echo -e "${BLUE}⚙️ Aplicando alterações...${NC}"

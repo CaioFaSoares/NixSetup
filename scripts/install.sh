@@ -8,17 +8,19 @@ NC='\033[0m'
 echo -e "${BLUE}🚀 Nix Setup - Residencia Apple: Iniciando instalação interativa...${NC}"
 
 # 1. Identificação da Máquina (Fixo por Hardware)
+# Tenta localizar qualquer arquivo identity-*.nix existente
+EXISTING_IDENTITY=$(ls identity-*.nix 2>/dev/null | head -n 1)
 
-# Tenta ler o ID da máquina se o identity.nix já existir
-if grep -q "machineId" identity.nix 2>/dev/null; then
-    MACHINE_ID=$(grep "machineId" identity.nix | cut -d'"' -f2)
-    echo "🖥️  Máquina identificada: mac-residencia-$MACHINE_ID"
+if [ -n "$EXISTING_IDENTITY" ]; then
+    MACHINE_ID=$(grep "machineId =" "$EXISTING_IDENTITY" | cut -d'"' -f2)
+    echo -e "🖥️  Máquina identificada (${EXISTING_IDENTITY}): mac-residencia-$MACHINE_ID"
 else
     # Se não existir, pede para o administrador/aluno digitar
     read -p "🖥️  Digite o número FÍSICO desta máquina (ex: 01, 02, 03): " MACHINE_ID
 fi
 
 HOSTNAME="mac-residencia-$MACHINE_ID"
+IDENTITY_FILE="identity-$MACHINE_ID.nix"
 
 # 2. Perguntas de Identidade (Dinâmico por Aluno)
 read -p "👤 Digite seu nome de usuário (ex: seunome): " USERNAME
@@ -40,9 +42,9 @@ case $PROFILE_OPT in
     *) PROFILE="suite"; echo "Opção inválida, usando padrão: suite" ;;
 esac
 
-# 3. Geração do identity.nix incluindo o machineId
-echo -e "\n${BLUE}📝 Gerando identity.nix...${NC}"
-cat <<EOF > identity.nix
+# 3. Geração do arquivo de identidade único
+echo -e "\n${BLUE}📝 Gerando $IDENTITY_FILE...${NC}"
+cat <<EOF > "$IDENTITY_FILE"
 {
   machineId = "$MACHINE_ID";
   username = "$USERNAME";
@@ -50,11 +52,20 @@ cat <<EOF > identity.nix
 }
 EOF
 
-# OBRIGATÓRIO: Força o git a enxergar o arquivo localmente, mas sem nunca enviá-lo para o commit/push
-git add -f identity.nix 
-git update-index --skip-worktree identity.nix
+# OBRIGATÓRIO: Força o git a enxergar o arquivo localmente sem enviá-lo
+git add -f "$IDENTITY_FILE" 
+git update-index --skip-worktree "$IDENTITY_FILE"
 
-echo -e "${GREEN}✅ Configuração salva em identity.nix${NC}"
+echo -e "${GREEN}✅ Configuração salva em $IDENTITY_FILE${NC}"
+
+# 3.5 CORREÇÃO DE PERMISSÕES DO HOMEBREW
+echo -e "\n${BLUE}🔐 Ajustando permissões do Homebrew...${NC}"
+# Garante que o usuário atual seja dono das pastas do Brew
+if [ -d "/opt/homebrew" ]; then
+    sudo chown -R "$USERNAME":admin /opt/homebrew
+elif [ -d "/usr/local/Homebrew" ]; then
+    sudo chown -R "$USERNAME":admin /usr/local/Homebrew
+fi
 
 # 4. Iniciar Build usando o Hostname dinâmico
 echo -e "\n${BLUE}🛠️ Iniciando build do Nix-Darwin...${NC}"
