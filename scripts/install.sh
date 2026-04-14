@@ -12,9 +12,10 @@ read -p "👤 Digite seu nome de usuário (ex: seunome): " USERNAME
 if [ -z "$USERNAME" ]; then
     USERNAME=$(whoami)
     echo "Usando padrão: $USERNAME"
-    HOSTNAME="mac-residencia-$USERNAME"
-    echo "Usando hostname padrão: $HOSTNAME"
 fi
+
+HOSTNAME="mac-residencia-$USERNAME"
+echo "Usando hostname padrão: $HOSTNAME"
 
 # 2. Seleção de Perfil
 echo -e "\n${BLUE}📂 Escolha o modelo de perfil:${NC}"
