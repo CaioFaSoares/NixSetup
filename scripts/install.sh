@@ -7,20 +7,19 @@ NC='\033[0m'
 
 echo -e "${BLUE}🚀 Nix Setup - Residencia Apple: Iniciando instalação interativa...${NC}"
 
-# 1. Identificação da Máquina (Fixo por Hardware)
-# Tenta localizar qualquer arquivo identity-*.nix existente
-EXISTING_IDENTITY=$(ls identity-*.nix 2>/dev/null | head -n 1)
+# O arquivo lido pelo Flake deve ter sempre o mesmo nome previsível
+IDENTITY_FILE="identity.nix"
 
-if [ -n "$EXISTING_IDENTITY" ]; then
-    MACHINE_ID=$(grep "machineId =" "$EXISTING_IDENTITY" | cut -d'"' -f2)
-    echo -e "🖥️  Máquina identificada (${EXISTING_IDENTITY}): mac-residencia-$MACHINE_ID"
+# 1. Identificação da Máquina (Fixo por Hardware)
+if [ -f "$IDENTITY_FILE" ] && grep -q "machineId" "$IDENTITY_FILE"; then
+    MACHINE_ID=$(grep "machineId =" "$IDENTITY_FILE" | cut -d'"' -f2)
+    echo -e "🖥️  Máquina identificada: mac-residencia-$MACHINE_ID"
 else
     # Se não existir, pede para o administrador/aluno digitar
     read -p "🖥️  Digite o número FÍSICO desta máquina (ex: 01, 02, 03): " MACHINE_ID
 fi
 
 HOSTNAME="mac-residencia-$MACHINE_ID"
-IDENTITY_FILE="identity-$MACHINE_ID.nix"
 
 # 2. Perguntas de Identidade (Dinâmico por Aluno)
 read -p "👤 Digite seu nome de usuário (ex: seunome): " USERNAME
@@ -67,12 +66,12 @@ elif [ -d "/usr/local/Homebrew" ]; then
     sudo chown -R "$USERNAME":admin /usr/local/Homebrew
 fi
 
-# 4. Iniciar Build usando o Hostname dinâmico
-echo -e "\n${BLUE}🛠️ Iniciando build do Nix-Darwin...${NC}"
+# 4. Iniciar Build usando o Hostname dinâmico e MODO VERBOSE
+echo -e "\n${BLUE}🛠️ Iniciando build do Nix-Darwin (com Logs detalhados)...${NC}"
 if command -v darwin-rebuild &> /dev/null; then
-    sudo darwin-rebuild switch --impure --flake .#"$HOSTNAME"
+    sudo darwin-rebuild switch --impure --flake .#"$HOSTNAME" -L --show-trace
 else
-    sudo nix run nix-darwin -- switch --impure --flake .#"$HOSTNAME"
+    sudo nix run nix-darwin -- switch --impure --flake .#"$HOSTNAME" -L --show-trace
 fi
 
 echo -e "\n${GREEN}✨ Instalação concluída! Reinicie o terminal se necessário.${NC}"

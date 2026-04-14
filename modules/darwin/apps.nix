@@ -40,7 +40,6 @@ in {
 
       # --- CRIATIVO (DESIGN, 3D, VÍDEO) ---
       ++ optionals cfg.designer.enable [
-        "blender"
         "canva"
         "affinity"
         "figma"
