@@ -36,6 +36,8 @@
           networking.computerName = dinamicHostname; # Importante para aparecer bonitinho no AirDrop/Rede
           
           system.primaryUser = identity.username;
+
+          system.stateVersion = 6;
           
           users.users."${identity.username}" = {
             name = identity.username;

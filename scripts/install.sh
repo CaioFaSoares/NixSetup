@@ -49,8 +49,7 @@ cat <<EOF > identity.nix
 }
 EOF
 
-# OBRIGATÓRIO: Força o git a rastrear o arquivo para o Nix enxergar
-git add -f identity.nix 
+# (Removido git add -f pois usamos --impure no build)
 
 echo -e "${GREEN}✅ Configuração salva em identity.nix${NC}"
 

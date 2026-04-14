@@ -61,6 +61,6 @@ in {
         "zerotier-one"
         "the-unarchiver"
         "grandperspective"
-      ]
+      ];
   };
 }
