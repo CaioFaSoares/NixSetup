@@ -15,6 +15,6 @@ if [ -z "$CURR_HOST" ]; then
 fi
 
 nix flake update
-sudo darwin-rebuild switch --flake .#$CURR_HOST
+sudo darwin-rebuild switch --impure --flake .#"$CURR_HOST"
 
 echo -e "${GREEN}✨ Sistema atualizado com sucesso!${NC}"

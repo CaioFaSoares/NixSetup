@@ -45,7 +45,6 @@ in {
         "affinity"
         "figma"
         "sf-symbols"
-        "obs"
         "shutter-encoder"
         "vlc"
       ]
@@ -59,10 +58,7 @@ in {
 
       # --- SISTEMA & UTILITÁRIOS ---
       ++ optionals cfg.utils.enable [
-        "alfred"
         "zerotier-one"
-        "bluesnooze"
-        "keyboardcleantool"
         "the-unarchiver"
         "grandperspective"
       ]

@@ -50,9 +50,9 @@ echo -e "${GREEN}✅ Configuração salva em identity.nix${NC}"
 # 4. Iniciar Build
 echo -e "\n${BLUE}🛠️ Iniciando build do Nix-Darwin...${NC}"
 if command -v darwin-rebuild &> /dev/null; then
-    sudo darwin-rebuild switch --flake .#$HOSTNAME
+    sudo darwin-rebuild switch --impure --flake .#"$HOSTNAME"
 else
-    sudo nix run nix-darwin -- switch --flake .#$HOSTNAME
+    sudo nix run nix-darwin -- switch --impure --flake .#"$HOSTNAME"
 fi
 
 echo -e "\n${GREEN}✨ Instalação concluída! Reinicie o terminal se necessário.${NC}"

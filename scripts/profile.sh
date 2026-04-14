@@ -39,6 +39,6 @@ EOF
 echo -e "${GREEN}✅ Perfil alterado para: $NEW_PROFILE${NC}"
 echo -e "${BLUE}⚙️ Aplicando alterações...${NC}"
 
-sudo darwin-rebuild switch --flake .#$CURR_HOST
+sudo darwin-rebuild switch --impure --flake .#"$CURR_HOST"
 
 echo -e "${GREEN}✨ Pronto! Perfil $NEW_PROFILE ativado.${NC}"
