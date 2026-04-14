@@ -2,4 +2,5 @@ identity.nix
 result
 .DS_Store
 flake.lock
-.gitignore
+scripts/old
+Determinate Nix.pkg
