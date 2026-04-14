@@ -14,6 +14,7 @@ if [ -z "$USERNAME" ]; then
     echo "Usando padrão: $USERNAME"
     HOSTNAME="mac-residencia-$USERNAME"
     echo "Usando hostname padrão: $HOSTNAME"
+fi
 
 # 2. Seleção de Perfil
 echo -e "\n${BLUE}📂 Escolha o modelo de perfil:${NC}"
