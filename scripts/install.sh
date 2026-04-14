@@ -1,0 +1,57 @@
+#!/bin/bash
+
+# Cores para o output
+GREEN='\033[0;32m'
+BLUE='\033[0;34m'
+NC='\033[0m'
+
+echo -e "${BLUE}🚀 Nex Setup: Iniciando instalação interativa...${NC}"
+
+# 1. Perguntas de Identidade
+read -p "👤 Digite seu nome de usuário (ex: caiosoares): " USERNAME
+if [ -z "$USERNAME" ]; then
+    USERNAME=$(whoami)
+    echo "Usando padrão: $USERNAME"
+fi
+
+read -p "💻 Digite o nome desta máquina (ex: roc-mac): " HOSTNAME
+if [ -z "$HOSTNAME" ]; then
+    HOSTNAME="nex-mac"
+    echo "Usando padrão: $HOSTNAME"
+fi
+
+# 2. Seleção de Perfil
+echo -e "\n${BLUE}📂 Escolha o modelo de perfil:${NC}"
+echo "1) designer   (Design, 3D, Edição)"
+echo "2) developer  (VsCode, Dev Tools, Terminal)"
+echo "3) suite      (Tudo: Designer + Developer)"
+read -p "Selecione o número [1-3]: " PROFILE_OPT
+
+case $PROFILE_OPT in
+    1) PROFILE="designer" ;;
+    2) PROFILE="developer" ;;
+    3) PROFILE="suite" ;;
+    *) PROFILE="suite"; echo "Opção inválida, usando padrão: suite" ;;
+esac
+
+# 3. Geração do identity.nix
+echo -e "\n${BLUE}📝 Gerando identity.nix...${NC}"
+cat <<EOF > identity.nix
+{
+  username = "$USERNAME";
+  hostname = "$HOSTNAME";
+  profile = "$PROFILE";
+}
+EOF
+
+echo -e "${GREEN}✅ Configuração salva em identity.nix${NC}"
+
+# 4. Iniciar Build
+echo -e "\n${BLUE}🛠️ Iniciando build do Nix-Darwin...${NC}"
+if command -v darwin-rebuild &> /dev/null; then
+    sudo darwin-rebuild switch --flake .#$HOSTNAME
+else
+    sudo nix run nix-darwin -- switch --flake .#$HOSTNAME
+fi
+
+echo -e "\n${GREEN}✨ Instalação concluída! Reinicie o terminal se necessário.${NC}"
