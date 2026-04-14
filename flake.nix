@@ -15,12 +15,13 @@
     # Função base para criar uma configuração de máquina
     mkDarwinConfig = id: 
       let 
-        identityFile = ./. + "/identity-${id}.nix";
-        # Carrega a identidade se existir, senão usa um fallback (evita erro no flake check)
+        identityFile = ./identity.nix;
+        # Carrega a identidade local se existir, senão usa fallback
         identity = if builtins.pathExists identityFile
                    then import identityFile
                    else { machineId = id; username = "user"; profile = "suite"; };
         
+        # Garante que o hostname siga o ID da configuração, mas permite sobreposição via identity.nix se necessário
         hostname = "mac-residencia-${id}";
       in darwin.lib.darwinSystem {
         system = "aarch64-darwin";
