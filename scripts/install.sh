@@ -69,9 +69,9 @@ fi
 # 4. Iniciar Build usando o Hostname dinâmico e MODO VERBOSE
 echo -e "\n${BLUE}🛠️ Iniciando build do Nix-Darwin (com Logs detalhados)...${NC}"
 if command -v darwin-rebuild &> /dev/null; then
-    sudo darwin-rebuild switch --impure --flake .#"$HOSTNAME" -L --show-trace
+    sudo darwin-rebuild switch --impure --flake .#"$HOSTNAME" -L --show-trace --verbose
 else
-    sudo nix run nix-darwin -- switch --impure --flake .#"$HOSTNAME" -L --show-trace
+    sudo nix run nix-darwin -- switch --impure --flake .#"$HOSTNAME" -L --show-trace --verbose
 fi
 
 echo -e "\n${GREEN}✨ Instalação concluída! Reinicie o terminal se necessário.${NC}"
