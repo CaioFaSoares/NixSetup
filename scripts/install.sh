@@ -5,7 +5,7 @@ GREEN='\033[0;32m'
 BLUE='\033[0;34m'
 NC='\033[0m'
 
-echo -e "${BLUE}🚀 Nex Setup: Iniciando instalação interativa...${NC}"
+echo -e "${BLUE}🚀 Nix Setup - Residencia Apple: Iniciando instalação interativa...${NC}"
 
 # 1. Perguntas de Identidade
 read -p "👤 Digite seu nome de usuário (ex: seunome): " USERNAME
